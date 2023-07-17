@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Secret Hashing</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Tangerine" />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.8/clipboard.min.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: black;
+            color: white;
+            font-family: "Tangerine", sans-serif;
+
+        }
+
+        input {
+            font-family: 'Tangerine';
+            font-size: 7em;
+            background: black;
+            color: wheat;
+            border: 0;
+            outline: none;
+        }
+
+        .center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin-right: -50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .content {
+            text-align: center;
+            align-items: center;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .createButton {
+            padding: 10px 20px;
+            background-color: #ff9900;
+            /* Bright color for the button */
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            display: block;
+            margin-top: 20px;
+        }
+
+        .createButton:hover {
+            background-color: #ffcc66;
+            /* Brighten the button on hover */
+        }
+
+        #promptContainer {
+            display: none;
+        }
+
+        .prompt {
+            color: antiquewhite;
+            font-size: 7em;
+            padding: 20px;
+        }
+
+        #displayContainer {
+            display: none;
+            /* Hide the display container by default */
+
+        }
+
+        #url {
+            cursor: pointer;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .tooltip p {
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            background-color: #000;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+    </style>
+
+    <script>
+
+        window.onload = function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const hash = urlParams.get('s');
+
+            if (hash) {
+                // Display the dehashed secret
+                document.getElementById('displayText').innerText = base64ToUnicode(hash);
+                document.getElementById('displayContainer').style.display = 'flex';
+            } else {
+                // Display the prompt
+                document.getElementById('promptContainer').style.display = 'flex';
+            }
+        };
+
+        function hashSecret() {
+            const secretInput = document.getElementById('secretInput').value;
+            if(secretInput.length === 0) return;
+            const hashedSecret = unicodeToBase64(secretInput);
+            const baseUrl = window.location.href.split('?')[0];
+            const urlElement = document.getElementById('url');
+            urlElement.innerHTML = `${baseUrl}?s=${hashedSecret}`;
+
+
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize Clipboard.js
+            new ClipboardJS('#url');
+        });
+
+
+        function unicodeToBase64(unicodeString) {
+            const utf8Bytes = unescape(encodeURIComponent(unicodeString));
+            return btoa(utf8Bytes);
+        }
+
+        function base64ToUnicode(base64String) {
+            const decoded = atob(base64String);
+            return decodeURIComponent(Array.prototype.map.call(decoded, (char) => {
+                return "%" + ("00" + char.charCodeAt(0).toString(16)).slice(-2);
+            }).join(""));
+        }
+
+        function copyToClipboard() {
+            const textToCopy = document.getElementById('url').innerText;
+            // Create a temporary textarea to copy the text
+            const tempTextarea = document.createElement('textarea');
+            tempTextarea.value = textToCopy;
+            document.body.appendChild(tempTextarea);
+            tempTextarea.select();
+
+            try {
+                // Execute the copy command
+                document.execCommand('copy');
+
+                // Display tooltip text
+                const tooltipText = document.getElementById('tooltipText');
+                tooltipText.style.visibility = 'visible';
+                tooltipText.style.opacity = 1;
+
+                // Hide the tooltip after a short delay
+                setTimeout(function () {
+                    tooltipText.style.visibility = 'hidden';
+                    tooltipText.style.opacity = 0;
+                }, 1500);
+            } catch (err) {
+                // In case the copy command fails
+                console.error('Copy to clipboard failed: ', err);
+            } finally {
+                // Clean up by removing the temporary textarea
+                document.body.removeChild(tempTextarea);
+            }
+        }
+
+    </script>
+</head>
+
+<body>
+    <div class="center">
+        <div class="content" id="promptContainer">
+            <input type="text" id="secretInput" autofocus placeholder="Enter your secret" />
+            <button class="createButton" onclick="hashSecret()">Generate URL</button>
+
+            <div class="tooltip">
+                <p>Generated URL:
+                    <span onclick="copyToClipboard()" id="url"></span>
+                    <span class="tooltiptext" id="tooltipText">Copied!</span>
+                </p>
+
+            </div>
+
+        </div>
+        <div class="content" id="displayContainer">
+            <div class="tenor-gif-embed" data-postid="16424092" data-share-method="host" data-aspect-ratio="1.91617"
+                data-width="30%"><a
+                    href="https://tenor.com/view/busythings-looking-look-around-spooky-eyes-gif-16424092">Busythings
+                    Looking GIF</a>from <a href="https://tenor.com/search/busythings-gifs">Busythings GIFs</a></div>
+            <script type="text/javascript" async src="https://tenor.com/embed.js"></script>
+            <h1 class="prompt" id="displayText"></h1>
+        </div>
+    </div>
+</body>
+
+</html>
